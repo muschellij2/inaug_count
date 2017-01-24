@@ -39,7 +39,7 @@ make_bw = function(x){
   x = x[,, 1:3]  # take 3 channels
   x = as(x, "array") # ensure it's an array
   bw = apply(x, 1:2, mean)
-  img_no_zero = x
+  img_no_zero = bw
   img_no_zero[img_no_zero == 0] = NA
   L = list(img = x, bw = bw, img_no_zero = img_no_zero)
   return(L)
@@ -50,15 +50,23 @@ trump = make_bw(trump)
 
 ### Image Registration
 
+Here we will calculate an affine transformation for the Trump image to the Obama image.  I will use the images where black areas have been set to missing:
 
 ```{r reg}
+library(RNiftyReg)
 affine = niftyreg(
     source = trump$img_no_zero, 
     target = obama$img_no_zero)
- 
-out_aff = as(affine$image, "array")
-writePNG(out_aff,
-    target = make_png_name(trump_stub, "bw_affine"))
 ```
+
+Let's apply the transformation to the black-and-white Trump image to see how it looks.  
+
+```{r}
+trans = forward(affine)
+reg_trump = trump
+reg_trump$bw = applyTransform(reg_trump$bw, transform = trans)
+reg_trump$img_no_zero = applyTransform(reg_trump$img_no_zero, transform = trans)
+```
+
 
 
