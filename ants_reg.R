@@ -142,7 +142,7 @@ if (all(d == c(631, 595))) {
 } else {
   if (all(d == c(744, 992))) {
     inds = 120:d[1]
-    mid_inds = 200:650
+    mid_inds = 200:550
   } else {
     stop("don't know inds yet")
   }
