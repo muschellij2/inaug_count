@@ -181,6 +181,16 @@ writePNG(tr_darker,
     target = make_png_name(obama_stub,
             "trump_darker"))
 
+obama_darker = obama_darker[inds, mid_inds]
+writePNG(obama_darker,
+         target = make_png_name(obama_stub,
+                                "obama_darker_cut"))
+
+tr_darker = tr_darker[inds, mid_inds]
+writePNG(tr_darker,
+         target = make_png_name(obama_stub,
+                                "trump_darker_cut"))
+
 trump_cut = reg_aff[inds, mid_inds]
 writePNG(trump_cut,
     target = make_png_name(trump_stub,
