@@ -1,0 +1,64 @@
+---
+title: "Inauguration Overlap"
+author: "John Muschelli"
+date: "1/23/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+There has been much discussion about to [count crowds is tricky](http://www.npr.org/sections/thetwo-way/2017/01/23/511267138/politics-aside-counting-crowds-is-tricky).  I wanted to try to see if we could simply quantify how much more coverage of the Mall was there during Obama's inauguration compared to Trump's.  I don't have any data about the counts and I wanted to look at images that were already online.  
+
+## Data Online
+I looked online and found a few links comparing the two pictures [1](https://www.theguardian.com/us-news/2017/jan/22/trump-inauguration-crowd-sean-spicers-claims-versus-the-evidence), [2](https://www.nytimes.com/interactive/2017/01/20/us/politics/trump-inauguration-crowd.html), [3](http://www.cnn.com/2017/01/20/politics/donald-trump-barack-obama-inauguration-crowd-size/), [4](http://www.youngcons.com/trump-vs-obama-inauguration-we-found-the-real-photos-now-you-decide/), and [5](http://abcnews.go.com/Politics/2009-2017-comparing-trumps-obamas-inauguration-crowds/story?id=44927217).  While many had some good angles from the Capitol looking out onto the Mall, I wanted to look at it from the Washington Monument.  I wanted to see if there were more poeple "where I'd be" (in the back).  I ended up using the [images from ABC](http://abcnews.go.com/Politics/2009-2017-comparing-trumps-obamas-inauguration-crowds/story?id=44927217) as it tried to put the times on the images (Obama picture was at 11AM and Trump picture was at 12PM).
+
+I saw the slider on [the Guardian](https://www.theguardian.com/us-news/2017/jan/22/trump-inauguration-crowd-sean-spicers-claims-versus-the-evidence) and although I liked the comparison, it wasn't as pleasing as I'd want.  Looking at the 2 images, I feel as though there is a better comparison after you align the images.  So that's what I did.
+
+## Processing the Data
+
+I manually resized the images to the same size in Photoshop.  I know this is not reproducible, but I created a canvas the same size as the picture from the Obama inauguration because I was going to try to register the one from Trump as the Obama one had better resolution.  I used R for the rest of the analysis.
+
+I used the [png](https://cran.r-project.org/package=png) and [jpeg](https://cran.r-project.org/package=jpeg) packages to read and write images.  I used the [RNiftyReg](https://cran.r-project.org/package=RNiftyReg) package to do the registration.  Although `RNiftyReg` has non-linear registrations, we chose an affine registration, which can scale the Trump image to match the size of the Obama image.  
+
+
+### Making Black and White Images
+```{r readin}
+library(jpeg)
+obama_stub = "abc_obama.jpg"
+obama = readJPEG(obama_stub)
+trump_stub = "abc_trump_resized_black.jpg"
+trump = readJPEG(trump_stub)
+```
+
+The images we have are colored and I want to register only based on the shapes and not the colors of the pixels in the image.  I made a black and white image by taking the mean value over the red, green, and blue channels.  We will also change black areas to `NA` for missing so that these do not go into the registration.  Although some areas are very dark, almost all are not truly black and the only black is in the image from Trump campaign so that we can inflate the image when matching.
+
+```{r make_bw}
+make_bw = function(x){
+  x = x[,, 1:3]  # take 3 channels
+  x = as(x, "array") # ensure it's an array
+  bw = apply(x, 1:2, mean)
+  img_no_zero = x
+  img_no_zero[img_no_zero == 0] = NA
+  L = list(img = x, bw = bw, img_no_zero = img_no_zero)
+  return(L)
+}
+obama = make_bw(obama)
+trump = make_bw(trump)
+```
+
+### Image Registration
+
+
+```{r reg}
+affine = niftyreg(
+    source = trump$img_no_zero, 
+    target = obama$img_no_zero)
+ 
+out_aff = as(affine$image, "array")
+writePNG(out_aff,
+    target = make_png_name(trump_stub, "bw_affine"))
+```
+
+
