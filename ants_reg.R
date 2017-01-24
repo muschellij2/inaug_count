@@ -142,7 +142,7 @@ if (all(d == c(631, 595))) {
 } else {
   if (all(d == c(744, 992))) {
     inds = 120:d[1]
-    mid_inds = 200:550
+    mid_inds = 300:700
   } else {
     stop("don't know inds yet")
   }
@@ -190,6 +190,16 @@ obama_cut = obama_bw[inds, mid_inds]
 writePNG(obama_cut,
     target = make_png_name(obama_stub,
             "cut"))
+
+trump_cut = color_aff[inds, mid_inds, ]
+writePNG(trump_cut,
+         target = make_png_name(trump_stub,
+                                "color_cut"))
+
+obama_cut = obama[inds, mid_inds, ]
+writePNG(obama_cut,
+         target = make_png_name(obama_stub,
+                                "color_cut"))
 
 
 
